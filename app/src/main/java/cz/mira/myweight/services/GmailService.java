@@ -1,16 +1,17 @@
 package cz.mira.myweight.services;
 
 
+import android.util.Log;
+
 import com.google.api.client.auth.oauth2.Credential;
-import com.google.api.client.extensions.jetty.auth.oauth2.LocalServerReceiver;
 import com.google.api.client.extensions.java6.auth.oauth2.AuthorizationCodeInstalledApp;
-import com.google.api.client.repackaged.org.apache.commons.codec.binary.Base64;
+import com.google.api.client.extensions.jetty.auth.oauth2.LocalServerReceiver;
 import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeFlow;
 import com.google.api.client.googleapis.auth.oauth2.GoogleClientSecrets;
-import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson2.JacksonFactory;
+import com.google.api.client.util.Base64;
 import com.google.api.client.util.store.FileDataStoreFactory;
 import com.google.api.services.gmail.Gmail;
 import com.google.api.services.gmail.GmailScopes;
@@ -19,8 +20,6 @@ import com.google.api.services.gmail.model.Message;
 import com.google.api.services.gmail.model.MessagePart;
 import com.google.api.services.gmail.model.MessagePartBody;
 import com.google.common.collect.Lists;
-
-import org.mortbay.log.Log;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -32,7 +31,12 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
 import java.util.List;
 
+import cz.mira.myweight.MainActivity;
+import cz.mira.myweight.database.entity.WeightLastUpdate;
+
 public class GmailService {
+    private static final String TAG = "GmailService";
+
     private static final String APPLICATION_NAME = "MyWeight";
 
     private static final JsonFactory JSON_FACTORY = JacksonFactory.getDefaultInstance();
@@ -55,13 +59,12 @@ public class GmailService {
         return listMessagesMatchingQuery(getGmailService(), USER, QUERY);
     }
 
-    public boolean doesNewTanitaEmailExist() throws IOException, GeneralSecurityException {
-        final WeightLastUpdate weightLastUpdate = weightLastUpdateRepository.findTopByOrderByIdDesc();
+    public boolean doesNewTanitaEmailExist(WeightLastUpdate weightLastUpdate) throws IOException, GeneralSecurityException {
         final String query = QUERY +
                 " after:" +
-                weightLastUpdate.getUpdated().format(DateTimeFormatter.ofLocalizedDate(FormatStyle.SHORT));
+                weightLastUpdate.getLastUpdated().format(DateTimeFormatter.ofLocalizedDate(FormatStyle.SHORT));
 
-        Log.debug("Checking if there is a new email from tanita with query {}...", query);
+        Log.d(TAG, String.format("Checking if there is a new email from tanita with query %s...", query));
 
         final ListMessagesResponse response = getGmailService()
                 .users()
@@ -73,17 +76,17 @@ public class GmailService {
 
         final List<Message> foundMessages = response.getMessages();
         if (foundMessages == null) {
-            Log.debug("No new messages found.");
+            Log.d(TAG,"No new messages found.");
             return false;
         } else {
-            Log.debug("Found {} messages", foundMessages.size());
+            Log.d(TAG, String.format("Found %s messages", foundMessages.size()));
             return true;
         }
     }
 
     private Gmail getGmailService() throws IOException, GeneralSecurityException {
         // Build a new authorized API client service.
-        final NetHttpTransport HTTP_TRANSPORT = GoogleNetHttpTransport.newTrustedTransport();
+        final NetHttpTransport HTTP_TRANSPORT = new com.google.api.client.http.javanet.NetHttpTransport();
         return new Gmail.Builder(HTTP_TRANSPORT, JSON_FACTORY, getCredentials(HTTP_TRANSPORT))
                 .setApplicationName(APPLICATION_NAME)
                 .build();
@@ -91,7 +94,7 @@ public class GmailService {
 
     private byte[] listMessagesMatchingQuery(Gmail service, String userId,
                                              String query) throws IOException {
-        Log.debug("Getting messages from gmail with query {}", query);
+        Log.d(TAG,String.format("Getting messages from gmail with query %s", query));
 
         final ListMessagesResponse response = service.users()
                 .messages()
@@ -101,7 +104,7 @@ public class GmailService {
                 .execute();
         final List<Message> messages = response.getMessages();
 
-        Log.debug("Got {} messages from gmail: {}", messages.size(), messages);
+        Log.d(TAG,String.format("Got %s messages from gmail: %s", messages.size(), messages));
 
         if (response.getMessages() == null || response.getMessages().isEmpty()) {
             throw new IOException("No messages found in Gmail");
@@ -129,7 +132,7 @@ public class GmailService {
                 MessagePartBody attachPart = service.users().messages().attachments().
                         get(userId, messageId, attId).execute();
 
-                Log.debug("Saving attachment with name {}", filename);
+                Log.d(TAG, String.format("Saving attachment with name %s", filename));
 
                 return Base64.decodeBase64(attachPart.getData());
             }
@@ -144,8 +147,9 @@ public class GmailService {
      * @throws IOException If the credentials.json file cannot be found.
      */
     private Credential getCredentials(final NetHttpTransport HTTP_TRANSPORT) throws IOException {
+        InputStream in = MainActivity.class.getResourceAsStream(CREDENTIALS_FILE_PATH);
         // Load client secrets.
-        InputStream in = GmailService.class.getResourceAsStream(CREDENTIALS_FILE_PATH);
+//        InputStream in = GmailService.class.getResourceAsStream(CREDENTIALS_FILE_PATH);
         if (in == null) {
             throw new FileNotFoundException("Resource not found: " + CREDENTIALS_FILE_PATH);
         }
