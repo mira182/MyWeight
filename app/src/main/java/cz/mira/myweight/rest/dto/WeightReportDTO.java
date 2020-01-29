@@ -1,5 +1,8 @@
 package cz.mira.myweight.rest.dto;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 import java.time.LocalDateTime;
 
 import lombok.AllArgsConstructor;
@@ -13,7 +16,7 @@ import lombok.Setter;
 @NoArgsConstructor
 @Getter
 @Setter
-public class WeightReportDTO {
+public class WeightReportDTO implements Parcelable {
 
     private LocalDateTime date;
 
@@ -38,4 +41,25 @@ public class WeightReportDTO {
     private Double bodyWatter;
 
     private Double physiqueRating;
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeValue(date);
+        dest.writeDouble(weight);
+        dest.writeDouble(bmi);
+        dest.writeDouble(bodyFat);
+        dest.writeDouble(visceralFat);
+        dest.writeDouble(muscleMass);
+        dest.writeDouble(muscleQuality);
+        dest.writeDouble(boneMass);
+        dest.writeDouble(bmr);
+        dest.writeDouble(metabolicAge);
+        dest.writeDouble(bodyWatter);
+        dest.writeDouble(physiqueRating);
+    }
 }

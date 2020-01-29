@@ -1,24 +1,21 @@
 package cz.mira.myweight;
 
+import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.content.ContextCompat;
 import androidx.room.Room;
 import androidx.viewpager.widget.ViewPager;
 
 import com.github.mikephil.charting.charts.LineChart;
-import com.github.mikephil.charting.components.XAxis;
-import com.github.mikephil.charting.components.YAxis;
-import com.github.mikephil.charting.data.Entry;
-import com.github.mikephil.charting.data.LineData;
-import com.github.mikephil.charting.data.LineDataSet;
-import com.github.mikephil.charting.formatter.ValueFormatter;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.tabs.TabLayout;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonDeserializer;
 
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
@@ -27,17 +24,12 @@ import org.apache.commons.csv.CSVRecord;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.Serializable;
 import java.security.GeneralSecurityException;
 import java.security.cert.CertificateException;
-import java.sql.Timestamp;
-import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
-import java.util.Locale;
-import java.util.concurrent.TimeUnit;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
@@ -46,12 +38,12 @@ import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
+import cz.mira.myweight.charts.MyLineChartActivity;
 import cz.mira.myweight.database.AppDatabase;
 import cz.mira.myweight.database.DatabaseClient;
 import cz.mira.myweight.database.async.AsyncTaskResult;
 import cz.mira.myweight.database.entity.WeightLastUpdate;
 import cz.mira.myweight.database.entity.WeightReport;
-import cz.mira.myweight.rest.WeightReportController;
 import cz.mira.myweight.rest.WeightRestService;
 import cz.mira.myweight.rest.dto.WeightReportDTO;
 import cz.mira.myweight.services.GmailService;
@@ -59,12 +51,16 @@ import cz.mira.myweight.services.WeightService;
 import cz.mira.myweight.ui.main.SectionsPagerAdapter;
 import okhttp3.OkHttpClient;
 import retrofit2.Call;
+import retrofit2.Callback;
 import retrofit2.Response;
 import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
 
 public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = "MainActivity";
+
+    static final String BASE_URL = "http://mira182.synology.me:8000/";
 
     private AppDatabase db;
 
@@ -83,68 +79,47 @@ public class MainActivity extends AppCompatActivity {
         tabs.setupWithViewPager(viewPager);
         final FloatingActionButton fab = findViewById(R.id.fab);
 
-//        final Retrofit retrofit = new Retrofit.Builder()
-//                .baseUrl("")
-//                .client(getUnsafeOkHttpClient().build())
-//                .addConverterFactory(GsonConverterFactory.create())
-//                .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
-//                .build();
-
         LineChart mChart = findViewById(R.id.weight_chart);
         mChart.setTouchEnabled(true);
         mChart.setPinchZoom(true);
         fab.setOnClickListener(view -> {
-//                saveTanitaEmailInDb();
-            WeightReportController controller = new WeightReportController(this, mChart);
-            controller.start();
-//            createWeightChart(mChart, controller.getWeightReport());
+            final Gson gson = new GsonBuilder().registerTypeAdapter(LocalDateTime.class,
+                    (JsonDeserializer<LocalDateTime>) (json, type, jsonDeserializationContext) ->
+                            LocalDateTime.parse(json.getAsJsonPrimitive().getAsString()))
+                    .create();
+
+            final Retrofit retrofit = new Retrofit.Builder()
+                    .baseUrl(BASE_URL)
+                    .client(getUnsafeOkHttpClient().build())
+                    .addConverterFactory(GsonConverterFactory.create(gson))
+                    .build();
+
+            WeightRestService weightReportService = retrofit.create(WeightRestService.class);
+            Call<List<WeightReportDTO>> call = weightReportService.getWeightReport();
+            call.enqueue(new Callback<List<WeightReportDTO>>() {
+                @Override
+                public void onResponse(Call<List<WeightReportDTO>> call, Response<List<WeightReportDTO>> response) {
+                    if (response.isSuccessful()) {
+                        final Intent lineChartIntent = new Intent(MainActivity.this, MyLineChartActivity.class);
+                        lineChartIntent.putExtra("weightReport", (Serializable) response.body());
+                        startActivity(lineChartIntent);
+                    } else {
+                        Log.e(TAG, response.errorBody().toString());
+                    }
+                }
+
+                @Override
+                public void onFailure(Call<List<WeightReportDTO>> call, Throwable t) {
+                    Log.e(TAG, "Failed to call : " + call, t);
+                }
+            });
             fab.setEnabled(false);
 
         });
-
-
-
         db = Room.databaseBuilder(getApplicationContext(),
                 AppDatabase.class, "my_weight").allowMainThreadQueries().build();
         gmailService = new GmailService();
         weightService = new WeightService(gmailService, db);
-    }
-
-    private void createWeightChart(LineChart lineChart, List<WeightReportDTO> weightReport) {
-        setContentView(R.layout.activity_main);
-        final ArrayList<Entry> entries = new ArrayList<>();
-        for (int i = 1; i < weightReport.size(); i++) {
-            float x_points = Timestamp.valueOf(weightReport.get(i).getDate().toString()).getTime();
-            float y_points = weightReport.get(i).getWeight().floatValue();
-            entries.add(new Entry(x_points, y_points));
-
-        }
-        LineDataSet lineDataSet = new LineDataSet(entries, "Weight");
-        lineDataSet.setColor(ContextCompat.getColor(this, R.color.colorPrimary));
-        lineDataSet.setValueTextColor(ContextCompat.getColor(this, R.color.colorPrimaryDark));
-        XAxis xAxis = lineChart.getXAxis();
-        xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
-        xAxis.setValueFormatter(new ValueFormatter() {
-            private final SimpleDateFormat mFormat = new SimpleDateFormat("dd MMM HH:mm", Locale.ENGLISH);
-
-            @Override
-            public String getFormattedValue(float value) {
-                long millis = TimeUnit.HOURS.toMillis((long) value);
-                return mFormat.format(new Date(millis));
-            }
-        });
-
-        YAxis yAxisRight = lineChart.getAxisRight();
-        yAxisRight.setEnabled(false);
-
-        YAxis yAxisLeft = lineChart.getAxisLeft();
-        yAxisLeft.setGranularity(1f);
-
-        LineData data = new LineData(lineDataSet);
-        lineChart.setData(data);
-        lineChart.animateX(2500);
-        lineChart.invalidate();
-
     }
 
     private void saveTanitaEmailInDb() {

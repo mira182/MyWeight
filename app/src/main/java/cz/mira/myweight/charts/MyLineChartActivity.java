@@ -1,7 +1,13 @@
 package cz.mira.myweight.charts;
 
 import android.content.Context;
+import android.content.Intent;
+import android.os.Bundle;
+import android.os.PersistableBundle;
+import android.util.Log;
 
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 
 import com.github.mikephil.charting.charts.LineChart;
@@ -14,6 +20,8 @@ import com.github.mikephil.charting.formatter.ValueFormatter;
 
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -23,36 +31,31 @@ import java.util.concurrent.TimeUnit;
 import cz.mira.myweight.R;
 import cz.mira.myweight.rest.dto.WeightReportDTO;
 
-public class MyLineChart {
+public class MyLineChartActivity extends AppCompatActivity {
 
-    LineChart lineChart;
+    private static final String TAG = "MyLineChartActivity";
 
-    List<WeightReportDTO> weightReport;
-
-    Context context;
-
-    public MyLineChart(LineChart lineChart, List<WeightReportDTO> weightReport, Context context) {
-        this.lineChart = lineChart;
-        this.weightReport = weightReport;
-        this.context = context;
-        setUpChart();
-    }
-
-    private void setUpChart() {
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.line_chart_acitivity);
+        Intent intent = getIntent();
+        List<WeightReportDTO> weightReport = (List<WeightReportDTO>) intent.getSerializableExtra("weightReport");
+        LineChart lineChart = findViewById(R.id.lineChart);
         final ArrayList<Entry> entries = new ArrayList<>();
         for (int i = 1; i < weightReport.size(); i++) {
-            float x_points = Timestamp.valueOf(weightReport.get(i).getDate().toString()).getTime();
+            Log.d(TAG, weightReport.get(i).getDate().format(DateTimeFormatter.ofPattern("yyyy-mm-dd hh:mm:ss")));
+            float x_points =weightReport.get(i).getDate().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
             float y_points = weightReport.get(i).getWeight().floatValue();
             entries.add(new Entry(x_points, y_points));
-
         }
         LineDataSet lineDataSet = new LineDataSet(entries, "Weight");
-        lineDataSet.setColor(ContextCompat.getColor(context, R.color.colorPrimary));
-        lineDataSet.setValueTextColor(ContextCompat.getColor(context, R.color.colorPrimaryDark));
+        lineDataSet.setColor(ContextCompat.getColor(getApplicationContext(), R.color.colorPrimary));
+        lineDataSet.setValueTextColor(ContextCompat.getColor(getApplicationContext(), R.color.colorPrimaryDark));
         XAxis xAxis = lineChart.getXAxis();
         xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
         xAxis.setValueFormatter(new ValueFormatter() {
-            private final SimpleDateFormat mFormat = new SimpleDateFormat("dd MMM HH:mm", Locale.ENGLISH);
+            private final SimpleDateFormat mFormat = new SimpleDateFormat("dd MM", Locale.ENGLISH);
 
             @Override
             public String getFormattedValue(float value) {
