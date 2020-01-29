@@ -49,17 +49,44 @@ public class WeightReportDTO implements Parcelable {
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
-        dest.writeValue(date);
-        dest.writeDouble(weight);
-        dest.writeDouble(bmi);
-        dest.writeDouble(bodyFat);
-        dest.writeDouble(visceralFat);
-        dest.writeDouble(muscleMass);
-        dest.writeDouble(muscleQuality);
-        dest.writeDouble(boneMass);
-        dest.writeDouble(bmr);
-        dest.writeDouble(metabolicAge);
-        dest.writeDouble(bodyWatter);
-        dest.writeDouble(physiqueRating);
+        dest.writeSerializable(this.date);
+        dest.writeValue(this.weight);
+        dest.writeValue(this.bmi);
+        dest.writeValue(this.bodyFat);
+        dest.writeValue(this.visceralFat);
+        dest.writeValue(this.muscleMass);
+        dest.writeValue(this.muscleQuality);
+        dest.writeValue(this.boneMass);
+        dest.writeValue(this.bmr);
+        dest.writeValue(this.metabolicAge);
+        dest.writeValue(this.bodyWatter);
+        dest.writeValue(this.physiqueRating);
     }
+
+    protected WeightReportDTO(Parcel in) {
+        this.date = (LocalDateTime) in.readSerializable();
+        this.weight = (Double) in.readValue(Double.class.getClassLoader());
+        this.bmi = (Double) in.readValue(Double.class.getClassLoader());
+        this.bodyFat = (Double) in.readValue(Double.class.getClassLoader());
+        this.visceralFat = (Double) in.readValue(Double.class.getClassLoader());
+        this.muscleMass = (Double) in.readValue(Double.class.getClassLoader());
+        this.muscleQuality = (Double) in.readValue(Double.class.getClassLoader());
+        this.boneMass = (Double) in.readValue(Double.class.getClassLoader());
+        this.bmr = (Double) in.readValue(Double.class.getClassLoader());
+        this.metabolicAge = (Double) in.readValue(Double.class.getClassLoader());
+        this.bodyWatter = (Double) in.readValue(Double.class.getClassLoader());
+        this.physiqueRating = (Double) in.readValue(Double.class.getClassLoader());
+    }
+
+    public static final Parcelable.Creator<WeightReportDTO> CREATOR = new Parcelable.Creator<WeightReportDTO>() {
+        @Override
+        public WeightReportDTO createFromParcel(Parcel source) {
+            return new WeightReportDTO(source);
+        }
+
+        @Override
+        public WeightReportDTO[] newArray(int size) {
+            return new WeightReportDTO[size];
+        }
+    };
 }

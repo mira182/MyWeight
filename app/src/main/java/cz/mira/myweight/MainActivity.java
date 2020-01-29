@@ -1,6 +1,6 @@
 package cz.mira.myweight;
 
-import android.content.Intent;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
@@ -10,9 +10,9 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.room.Room;
 import androidx.viewpager.widget.ViewPager;
 
-import com.github.mikephil.charting.charts.LineChart;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.tabs.TabLayout;
+import com.google.api.client.util.Lists;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonDeserializer;
@@ -24,7 +24,6 @@ import org.apache.commons.csv.CSVRecord;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.Serializable;
 import java.security.GeneralSecurityException;
 import java.security.cert.CertificateException;
 import java.time.LocalDateTime;
@@ -38,7 +37,6 @@ import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
-import cz.mira.myweight.charts.MyLineChartActivity;
 import cz.mira.myweight.database.AppDatabase;
 import cz.mira.myweight.database.DatabaseClient;
 import cz.mira.myweight.database.async.AsyncTaskResult;
@@ -49,6 +47,7 @@ import cz.mira.myweight.rest.dto.WeightReportDTO;
 import cz.mira.myweight.services.GmailService;
 import cz.mira.myweight.services.WeightService;
 import cz.mira.myweight.ui.main.SectionsPagerAdapter;
+import cz.mira.myweight.ui.main.fragments.WeightChartFragment;
 import okhttp3.OkHttpClient;
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -56,7 +55,7 @@ import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements WeightChartFragment.OnFragmentInteractionListener {
 
     private static final String TAG = "MainActivity";
 
@@ -79,9 +78,6 @@ public class MainActivity extends AppCompatActivity {
         tabs.setupWithViewPager(viewPager);
         final FloatingActionButton fab = findViewById(R.id.fab);
 
-        LineChart mChart = findViewById(R.id.weight_chart);
-        mChart.setTouchEnabled(true);
-        mChart.setPinchZoom(true);
         fab.setOnClickListener(view -> {
             final Gson gson = new GsonBuilder().registerTypeAdapter(LocalDateTime.class,
                     (JsonDeserializer<LocalDateTime>) (json, type, jsonDeserializationContext) ->
@@ -100,9 +96,8 @@ public class MainActivity extends AppCompatActivity {
                 @Override
                 public void onResponse(Call<List<WeightReportDTO>> call, Response<List<WeightReportDTO>> response) {
                     if (response.isSuccessful()) {
-                        final Intent lineChartIntent = new Intent(MainActivity.this, MyLineChartActivity.class);
-                        lineChartIntent.putExtra("weightReport", (Serializable) response.body());
-                        startActivity(lineChartIntent);
+                        sectionsPagerAdapter.addFragment(WeightChartFragment.newInstance(Lists.newArrayList(response.body())), 0);
+                        sectionsPagerAdapter.notifyDataSetChanged();
                     } else {
                         Log.e(TAG, response.errorBody().toString());
                     }
@@ -292,5 +287,10 @@ public class MainActivity extends AppCompatActivity {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+
+    @Override
+    public void onFragmentInteraction(Uri uri) {
+
     }
 }

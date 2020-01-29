@@ -1,5 +1,18 @@
 <resources>
     <string name="app_name">MyWeight</string>
-    <string name="tab_text_1">Tab 1</string>
-    <string name="tab_text_2">Tab 2</string>
+    <string name="weight">Weight</string>
+    <string name="weight_tab_text">Weight</string>
+    <string name="bmi_tab_text">BMI</string>
+    <string name="bodyFat_tab_text">Body fat</string>
+    <string name="visceralFat_tab_text">Visceral fat</string>
+    <string name="muscleMass_tab_text">Muscle mass</string>
+    <string name="muscleQuality_tab_text">Muscle quality</string>
+    <string name="boneMass_tab_text">Bone mass</string>
+    <string name="bmr_tab_text">BMR</string>
+    <string name="metabolicAge_tab_text">Metabolic age</string>
+    <string name="bodyWatter_tab_text">Body watter</string>
+    <string name="physiqueRating_tab_text">Physique rating</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>
