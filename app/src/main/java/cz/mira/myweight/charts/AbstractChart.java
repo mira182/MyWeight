@@ -49,7 +49,7 @@ public abstract class AbstractChart {
         LineDataSet lineDataSet = new LineDataSet(entries, "BMI");
         lineDataSet.setColor(ContextCompat.getColor(context, R.color.colorPrimary));
         lineDataSet.setValueTextColor(ContextCompat.getColor(context, R.color.colorPrimaryDark));
-        lineDataSet.setMode(LineDataSet.Mode.CUBIC_BEZIER);
+        setDataSetMode(lineDataSet);
         XAxis xAxis = lineChart.getXAxis();
         xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
         xAxis.setValueFormatter(new ValueFormatter() {
@@ -76,4 +76,6 @@ public abstract class AbstractChart {
     }
 
     abstract float getYAxisDataList(List<WeightReportDTO> weightReport, int index);
+
+    abstract void setDataSetMode(LineDataSet lineDataSet);
 }
