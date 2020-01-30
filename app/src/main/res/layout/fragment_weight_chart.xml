@@ -3,7 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".ui.main.fragments.WeightChartFragment">
+    tools:context=".ui.main.fragments.ChartFragment">
 
     <com.github.mikephil.charting.charts.LineChart
         android:id="@+id/lineChart"

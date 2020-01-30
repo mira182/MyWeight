@@ -12,7 +12,7 @@ import androidx.viewpager.widget.ViewPager;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.tabs.TabLayout;
-import com.google.api.client.util.Lists;
+import com.google.common.collect.Lists;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonDeserializer;
@@ -28,6 +28,7 @@ import java.security.GeneralSecurityException;
 import java.security.cert.CertificateException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
 import java.util.List;
 
 import javax.net.ssl.HostnameVerifier;
@@ -37,6 +38,7 @@ import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
+import cz.mira.myweight.charts.ChartType;
 import cz.mira.myweight.database.AppDatabase;
 import cz.mira.myweight.database.DatabaseClient;
 import cz.mira.myweight.database.async.AsyncTaskResult;
@@ -45,9 +47,8 @@ import cz.mira.myweight.database.entity.WeightReport;
 import cz.mira.myweight.rest.WeightRestService;
 import cz.mira.myweight.rest.dto.WeightReportDTO;
 import cz.mira.myweight.services.GmailService;
-import cz.mira.myweight.services.WeightService;
 import cz.mira.myweight.ui.main.SectionsPagerAdapter;
-import cz.mira.myweight.ui.main.fragments.WeightChartFragment;
+import cz.mira.myweight.ui.main.fragments.ChartFragment;
 import okhttp3.OkHttpClient;
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -55,7 +56,7 @@ import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
-public class MainActivity extends AppCompatActivity implements WeightChartFragment.OnFragmentInteractionListener {
+public class MainActivity extends AppCompatActivity implements ChartFragment.OnFragmentInteractionListener {
 
     private static final String TAG = "MainActivity";
 
@@ -64,8 +65,6 @@ public class MainActivity extends AppCompatActivity implements WeightChartFragme
     private AppDatabase db;
 
     private GmailService gmailService;
-
-    private WeightService weightService;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -96,7 +95,10 @@ public class MainActivity extends AppCompatActivity implements WeightChartFragme
                 @Override
                 public void onResponse(Call<List<WeightReportDTO>> call, Response<List<WeightReportDTO>> response) {
                     if (response.isSuccessful()) {
-                        sectionsPagerAdapter.addFragment(WeightChartFragment.newInstance(Lists.newArrayList(response.body())), 0);
+                        sectionsPagerAdapter.setWeightReport(Lists.newArrayList(response.body()));
+                        Arrays.stream(ChartType.values()).forEach(chartType ->
+                                sectionsPagerAdapter.addFragment(ChartFragment.newInstance(Lists.newArrayList(response.body()), chartType), 0)
+                        );
                         sectionsPagerAdapter.notifyDataSetChanged();
                     } else {
                         Log.e(TAG, response.errorBody().toString());
@@ -114,7 +116,7 @@ public class MainActivity extends AppCompatActivity implements WeightChartFragme
         db = Room.databaseBuilder(getApplicationContext(),
                 AppDatabase.class, "my_weight").allowMainThreadQueries().build();
         gmailService = new GmailService();
-        weightService = new WeightService(gmailService, db);
+//        weightService = new WeightService(gmailService, db);
     }
 
     private void saveTanitaEmailInDb() {
