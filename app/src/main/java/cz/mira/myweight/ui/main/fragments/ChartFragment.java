@@ -30,6 +30,7 @@ public class ChartFragment extends Fragment {
     private static final String TAG = "ChartFragment";
 
     private static final String ARG_PARAM1 = "weightReport";
+
     private static final String ARG_PARAM2 = "chartType";
 
     private ArrayList<WeightReportDTO> weightReport;

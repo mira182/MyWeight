@@ -7,10 +7,10 @@ import android.util.Log;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.room.Room;
 import androidx.viewpager.widget.ViewPager;
 
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.github.clans.fab.FloatingActionButton;
+import com.github.clans.fab.FloatingActionMenu;
 import com.google.android.material.tabs.TabLayout;
 import com.google.common.collect.Lists;
 import com.google.gson.Gson;
@@ -39,7 +39,6 @@ import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
 import cz.mira.myweight.charts.ChartType;
-import cz.mira.myweight.database.AppDatabase;
 import cz.mira.myweight.database.DatabaseClient;
 import cz.mira.myweight.database.async.AsyncTaskResult;
 import cz.mira.myweight.database.entity.WeightLastUpdate;
@@ -62,8 +61,6 @@ public class MainActivity extends AppCompatActivity implements ChartFragment.OnF
 
     static final String BASE_URL = "http://mira182.synology.me:8000/";
 
-    private AppDatabase db;
-
     private GmailService gmailService;
 
     @Override
@@ -75,9 +72,11 @@ public class MainActivity extends AppCompatActivity implements ChartFragment.OnF
         viewPager.setAdapter(sectionsPagerAdapter);
         TabLayout tabs = findViewById(R.id.tabs);
         tabs.setupWithViewPager(viewPager);
-        final FloatingActionButton fab = findViewById(R.id.fab);
+        final FloatingActionMenu menu = findViewById(R.id.menu);
+        final FloatingActionButton showChartsfab = findViewById(R.id.show_charts_item);
+        final FloatingActionButton updateWeightReportfab = findViewById(R.id.refresh_item);
 
-        fab.setOnClickListener(view -> {
+        showChartsfab.setOnClickListener(view -> {
             final Gson gson = new GsonBuilder().registerTypeAdapter(LocalDateTime.class,
                     (JsonDeserializer<LocalDateTime>) (json, type, jsonDeserializationContext) ->
                             LocalDateTime.parse(json.getAsJsonPrimitive().getAsString()))
@@ -90,8 +89,9 @@ public class MainActivity extends AppCompatActivity implements ChartFragment.OnF
                     .build();
 
             WeightRestService weightReportService = retrofit.create(WeightRestService.class);
-            Call<List<WeightReportDTO>> call = weightReportService.getWeightReport();
-            call.enqueue(new Callback<List<WeightReportDTO>>() {
+            Call<List<WeightReportDTO>> getWeightReportCall = weightReportService.getWeightReport();
+            Call<Boolean> doesNewEmailExistCall = weightReportService.doesNewEmailExist();
+            getWeightReportCall.enqueue(new Callback<List<WeightReportDTO>>() {
                 @Override
                 public void onResponse(Call<List<WeightReportDTO>> call, Response<List<WeightReportDTO>> response) {
                     if (response.isSuccessful()) {
@@ -100,6 +100,7 @@ public class MainActivity extends AppCompatActivity implements ChartFragment.OnF
                                 sectionsPagerAdapter.addFragment(ChartFragment.newInstance(Lists.newArrayList(response.body()), chartType), 0)
                         );
                         sectionsPagerAdapter.notifyDataSetChanged();
+                        menu.hideMenu(true);
                     } else {
                         Log.e(TAG, response.errorBody().toString());
                     }
@@ -110,12 +111,26 @@ public class MainActivity extends AppCompatActivity implements ChartFragment.OnF
                     Log.e(TAG, "Failed to call : " + call, t);
                 }
             });
-            fab.setEnabled(false);
+            doesNewEmailExistCall.enqueue(new Callback<Boolean>() {
+                @Override
+                public void onResponse(Call<Boolean> call, Response<Boolean> response) {
+                    if (response.isSuccessful()) {
+                        final String existsString = response.body() ? "exists" : "does not exist";
+                        Log.i(TAG, "New email " + existsString);
+                    } else {
+                        Log.e(TAG, "Failed to check if new email exists. " + response.errorBody().toString());
+                    }
+                }
 
+                @Override
+                public void onFailure(Call<Boolean> call, Throwable t) {
+                    Log.e(TAG, "Failed to call : " + call, t);
+                }
+            });
         });
-        db = Room.databaseBuilder(getApplicationContext(),
-                AppDatabase.class, "my_weight").allowMainThreadQueries().build();
-        gmailService = new GmailService();
+//        AppDatabase db = Room.databaseBuilder(getApplicationContext(),
+//                AppDatabase.class, "my_weight").allowMainThreadQueries().build();
+//        gmailService = new GmailService();
 //        weightService = new WeightService(gmailService, db);
     }
 

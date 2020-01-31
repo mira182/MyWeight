@@ -12,7 +12,4 @@
     <string name="metabolicAge_tab_text">Metabolic age</string>
     <string name="bodyWatter_tab_text">Body watter</string>
     <string name="physiqueRating_tab_text">Physique rating</string>
-
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>
