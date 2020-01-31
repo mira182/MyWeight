@@ -42,7 +42,7 @@ public abstract class AbstractChart {
         final LineChart lineChart = view.findViewById(R.id.lineChart);
         final ArrayList<Entry> entries = new ArrayList<>();
         for (int i = 1; i < weightReport.size(); i++) {
-            float x_points = weightReport.get(i).getDate().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
+            float x_points = TimeUnit.MILLISECONDS.toHours(weightReport.get(i).getDate().atZone(ZoneId.systemDefault()).toInstant().toEpochMilli());
             float y_points = getYAxisDataList(weightReport, i);
             entries.add(new Entry(x_points, y_points));
         }
@@ -53,7 +53,7 @@ public abstract class AbstractChart {
         XAxis xAxis = lineChart.getXAxis();
         xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
         xAxis.setValueFormatter(new ValueFormatter() {
-            private final SimpleDateFormat mFormat = new SimpleDateFormat("dd/MM", Locale.ENGLISH);
+            private final SimpleDateFormat mFormat = new SimpleDateFormat("dd/MMM", Locale.ENGLISH);
 
             @Override
             public String getFormattedValue(float value) {
