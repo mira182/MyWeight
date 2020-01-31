@@ -73,22 +73,23 @@ public class MainActivity extends AppCompatActivity implements ChartFragment.OnF
         TabLayout tabs = findViewById(R.id.tabs);
         tabs.setupWithViewPager(viewPager);
         final FloatingActionMenu menu = findViewById(R.id.menu);
-        final FloatingActionButton showChartsfab = findViewById(R.id.show_charts_item);
-        final FloatingActionButton updateWeightReportfab = findViewById(R.id.refresh_item);
+        final FloatingActionButton showChartsFab = findViewById(R.id.show_charts_item);
+        final FloatingActionButton updateWeightReportFab = findViewById(R.id.refresh_item);
 
-        showChartsfab.setOnClickListener(view -> {
-            final Gson gson = new GsonBuilder().registerTypeAdapter(LocalDateTime.class,
-                    (JsonDeserializer<LocalDateTime>) (json, type, jsonDeserializationContext) ->
-                            LocalDateTime.parse(json.getAsJsonPrimitive().getAsString()))
-                    .create();
+        final Gson gson = new GsonBuilder().registerTypeAdapter(LocalDateTime.class,
+                (JsonDeserializer<LocalDateTime>) (json, type, jsonDeserializationContext) ->
+                        LocalDateTime.parse(json.getAsJsonPrimitive().getAsString()))
+                .create();
 
-            final Retrofit retrofit = new Retrofit.Builder()
-                    .baseUrl(BASE_URL)
-                    .client(getUnsafeOkHttpClient().build())
-                    .addConverterFactory(GsonConverterFactory.create(gson))
-                    .build();
+        final Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl(BASE_URL)
+                .client(getUnsafeOkHttpClient().build())
+                .addConverterFactory(GsonConverterFactory.create(gson))
+                .build();
 
-            WeightRestService weightReportService = retrofit.create(WeightRestService.class);
+        WeightRestService weightReportService = retrofit.create(WeightRestService.class);
+
+        showChartsFab.setOnClickListener(view -> {
             Call<List<WeightReportDTO>> getWeightReportCall = weightReportService.getWeightReport();
             Call<Boolean> doesNewEmailExistCall = weightReportService.doesNewEmailExist();
             getWeightReportCall.enqueue(new Callback<List<WeightReportDTO>>() {
@@ -102,7 +103,11 @@ public class MainActivity extends AppCompatActivity implements ChartFragment.OnF
                         sectionsPagerAdapter.notifyDataSetChanged();
                         menu.hideMenu(true);
                     } else {
-                        Log.e(TAG, response.errorBody().toString());
+                        try {
+                            Log.e(TAG, response.errorBody().string());
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
                     }
                 }
 
@@ -111,25 +116,51 @@ public class MainActivity extends AppCompatActivity implements ChartFragment.OnF
                     Log.e(TAG, "Failed to call : " + call, t);
                 }
             });
-            doesNewEmailExistCall.enqueue(new Callback<Boolean>() {
+//            doesNewEmailExistCall.enqueue(new Callback<Boolean>() {
+//                @Override
+//                public void onResponse(Call<Boolean> call, Response<Boolean> response) {
+//                    if (response.isSuccessful()) {
+//                        final String existsString = response.body() ? "exists" : "does not exist";
+//                        Log.i(TAG, "New email " + existsString);
+//                    } else {
+//                        Log.e(TAG, "Failed to check if new email exists. " + response.errorBody().toString());
+//                    }
+//                }
+//
+//                @Override
+//                public void onFailure(Call<Boolean> call, Throwable t) {
+//                    Log.e(TAG, "Failed to call : " + call, t);
+//                }
+//            });
+        });
+        updateWeightReportFab.setOnClickListener(listener -> {
+            Call<Boolean> updateWeightReportCall = weightReportService.updateWeightReport();
+            updateWeightReportCall.enqueue(new Callback<Boolean>() {
                 @Override
                 public void onResponse(Call<Boolean> call, Response<Boolean> response) {
                     if (response.isSuccessful()) {
-                        final String existsString = response.body() ? "exists" : "does not exist";
-                        Log.i(TAG, "New email " + existsString);
+                        final String updatedString = "Weight report was updated successfully.";
+                        Toast.makeText(getApplicationContext(), updatedString, Toast.LENGTH_SHORT).show();
+                        Log.i(TAG, updatedString);
                     } else {
-                        Log.e(TAG, "Failed to check if new email exists. " + response.errorBody().toString());
+                        try {
+                            Toast.makeText(getApplicationContext(), "Failed to update weight report", Toast.LENGTH_SHORT).show();
+                            Log.e(TAG, "Failed to update weight report: " + response.errorBody().string());
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
                     }
                 }
 
                 @Override
                 public void onFailure(Call<Boolean> call, Throwable t) {
+                    Toast.makeText(getApplicationContext(), "Failed to call : " + call, Toast.LENGTH_SHORT).show();
                     Log.e(TAG, "Failed to call : " + call, t);
                 }
             });
+            menu.close(true);
         });
-//        AppDatabase db = Room.databaseBuilder(getApplicationContext(),
-//                AppDatabase.class, "my_weight").allowMainThreadQueries().build();
+        // old solution
 //        gmailService = new GmailService();
 //        weightService = new WeightService(gmailService, db);
     }

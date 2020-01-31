@@ -13,4 +13,7 @@ public interface WeightRestService {
 
         @GET("weight/doesNewEmailExist")
         Call<Boolean> doesNewEmailExist();
+
+        @GET("weight/updateReport")
+        Call<Boolean> updateWeightReport();
 }

@@ -70,7 +70,7 @@
         fab:menu_labels_paddingLeft="8dp"
         fab:menu_labels_padding="8dp"
         fab:menu_labels_textColor="#FFFFFF"
-        fab:menu_labels_textSize="14sp"
+        fab:menu_labels_textSize="10sp"
         fab:menu_labels_cornerRadius="3dp"
         fab:menu_labels_colorNormal="#333333"
         fab:menu_labels_colorPressed="#444444"
@@ -82,7 +82,6 @@
         fab:menu_labels_position="left"
         fab:menu_openDirection="up"
         fab:menu_backgroundColor="@android:color/transparent"
-        fab:menu_fab_label="Actions"
         fab:menu_fab_show_animation="@anim/scale_up"
         fab:menu_fab_hide_animation="@anim/scale_down">
 
@@ -90,7 +89,7 @@
             android:id="@+id/refresh_item"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:src="@drawable/refresh"
+            android:src="@mipmap/ic_refresh"
             fab:fab_size="mini"
             fab:fab_label="Update report" />
 
@@ -98,7 +97,7 @@
             android:id="@+id/show_charts_item"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:src="@drawable/chart"
+            android:src="@mipmap/ic_chart"
             fab:fab_size="mini"
             fab:fab_label="Show charts" />
 
