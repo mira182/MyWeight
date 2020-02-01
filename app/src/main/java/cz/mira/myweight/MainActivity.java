@@ -3,6 +3,7 @@ package cz.mira.myweight;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.widget.Toast;
 
@@ -62,6 +63,8 @@ public class MainActivity extends AppCompatActivity implements ChartFragment.OnF
     static final String BASE_URL = "http://mira182.synology.me:8000/";
 
     private GmailService gmailService;
+
+    private boolean doubleBackToExitPressedOnce = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -340,5 +343,24 @@ public class MainActivity extends AppCompatActivity implements ChartFragment.OnF
     @Override
     public void onFragmentInteraction(Uri uri) {
 
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (doubleBackToExitPressedOnce) {
+            super.onBackPressed();
+            return;
+        }
+
+        this.doubleBackToExitPressedOnce = true;
+        Toast.makeText(this, "Please click BACK again to exit", Toast.LENGTH_SHORT).show();
+
+        new Handler().postDelayed(new Runnable() {
+
+            @Override
+            public void run() {
+                doubleBackToExitPressedOnce=false;
+            }
+        }, 2000);
     }
 }
