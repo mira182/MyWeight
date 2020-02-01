@@ -31,7 +31,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
 import java.util.List;
 
-import cz.mira.myweight.MainActivity;
+import cz.mira.myweight.ChartsActivity;
 import cz.mira.myweight.database.entity.WeightLastUpdate;
 
 public class GmailService {
@@ -147,7 +147,7 @@ public class GmailService {
      * @throws IOException If the credentials.json file cannot be found.
      */
     private Credential getCredentials(final NetHttpTransport HTTP_TRANSPORT) throws IOException {
-        InputStream in = MainActivity.class.getResourceAsStream(CREDENTIALS_FILE_PATH);
+        InputStream in = ChartsActivity.class.getResourceAsStream(CREDENTIALS_FILE_PATH);
         // Load client secrets.
 //        InputStream in = GmailService.class.getResourceAsStream(CREDENTIALS_FILE_PATH);
         if (in == null) {

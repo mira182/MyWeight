@@ -64,15 +64,8 @@ public class ChartFragment extends Fragment {
                              Bundle savedInstanceState) {
         final View view = inflater.inflate(R.layout.fragment_weight_chart, container, false);
         AbstractChart chart = chartType.createChart(getContext(), view, weightReport);
-        chart.createChart();
+        chart.createLineChart();
         return view;
-    }
-
-    // TODO: Rename method, update argument and hook method into UI event
-    public void onButtonPressed(Uri uri) {
-        if (mListener != null) {
-            mListener.onFragmentInteraction(uri);
-        }
     }
 
     @Override

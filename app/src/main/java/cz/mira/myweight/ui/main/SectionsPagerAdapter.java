@@ -12,9 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import cz.mira.myweight.R;
-import cz.mira.myweight.charts.ChartType;
 import cz.mira.myweight.rest.dto.WeightReportDTO;
-import cz.mira.myweight.ui.main.fragments.ChartFragment;
 
 /**
  * A [FragmentPagerAdapter] that returns a fragment corresponding to
@@ -52,17 +50,17 @@ public class SectionsPagerAdapter extends FragmentPagerAdapter {
         mFragmentList.add(position, fragment);
     }
 
-    public void removeFragment(Fragment fragment, int position) {
-        mFragmentList.remove(position);
-    }
-
     public void setWeightReport(ArrayList<WeightReportDTO> weightReport) {
         this.weightReport = weightReport;
     }
 
+    public void removeAll() {
+        mFragmentList.clear();
+    }
+
     @Override
     public Fragment getItem(int position) {
-        return ChartFragment.newInstance(weightReport, ChartType.values()[position]);
+        return mFragmentList.get(position);
     }
 
     @Nullable

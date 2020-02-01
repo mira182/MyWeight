@@ -54,7 +54,7 @@ public abstract class AbstractChart {
         this.weightReport = weightReport;
     }
 
-    public final void createChart() {
+    public final void createLineChart() {
         final LineChart lineChart = view.findViewById(R.id.lineChart);
         final ArrayList<Entry> entries = new ArrayList<>();
         for (int i = 1; i < weightReport.size(); i++) {
@@ -65,7 +65,8 @@ public abstract class AbstractChart {
         }
         LineDataSet lineDataSet = new LineDataSet(entries, "BMI");
         lineDataSet.setColor(ContextCompat.getColor(context, R.color.colorPrimary));
-        lineDataSet.setValueTextColor(ContextCompat.getColor(context, R.color.colorPrimaryDark));
+        lineDataSet.setDrawValues(false);
+//        lineDataSet.setValueTextColor(ContextCompat.getColor(context, R.color.colorPrimaryDark));
         setDataSetMode(lineDataSet);
         XAxis xAxis = lineChart.getXAxis();
         xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
