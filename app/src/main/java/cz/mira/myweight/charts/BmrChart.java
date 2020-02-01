@@ -13,6 +13,7 @@ public class BmrChart extends AbstractChart {
 
     public BmrChart(Context context, View view, List<WeightReportDTO> weightReport) {
         super(context, view, weightReport);
+        chartName = "BMR";
     }
 
     @Override
@@ -23,6 +24,11 @@ public class BmrChart extends AbstractChart {
     @Override
     void setDataSetMode(LineDataSet lineDataSet) {
         lineDataSet.setMode(LineDataSet.Mode.CUBIC_BEZIER);
+    }
+
+    @Override
+    String setPrintStringForXValue(float selectedYValue) {
+        return chartName + ": " + selectedYValue;
     }
 
 

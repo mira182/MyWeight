@@ -13,6 +13,7 @@ public class MetabolicAgeChart extends AbstractChart {
 
     public MetabolicAgeChart(Context context, View view, List<WeightReportDTO> weightReport) {
         super(context, view, weightReport);
+        chartName = "Metabolic age";
     }
 
     @Override
@@ -23,5 +24,10 @@ public class MetabolicAgeChart extends AbstractChart {
     @Override
     void setDataSetMode(LineDataSet lineDataSet) {
         lineDataSet.setMode(LineDataSet.Mode.CUBIC_BEZIER);
+    }
+
+    @Override
+    String setPrintStringForXValue(float selectedYValue) {
+        return chartName + ": " + selectedYValue + " years";
     }
 }

@@ -13,6 +13,7 @@ public class VisceralFatChart extends AbstractChart {
 
     public VisceralFatChart(Context context, View view, List<WeightReportDTO> weightReport) {
         super(context, view, weightReport);
+        chartName = "Visceral fat";
     }
 
     @Override
@@ -22,6 +23,11 @@ public class VisceralFatChart extends AbstractChart {
 
     @Override
     void setDataSetMode(LineDataSet lineDataSet) {
-        lineDataSet.setMode(LineDataSet.Mode.CUBIC_BEZIER);
+        lineDataSet.setMode(LineDataSet.Mode.STEPPED);
+    }
+
+    @Override
+    String setPrintStringForXValue(float selectedYValue) {
+        return chartName + ": " + selectedYValue;
     }
 }

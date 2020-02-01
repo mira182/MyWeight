@@ -13,6 +13,7 @@ public class PhysiqueRatingChart extends AbstractChart {
 
     public PhysiqueRatingChart(Context context, View view, List<WeightReportDTO> weightReport) {
         super(context, view, weightReport);
+        chartName = "Physique rating";
     }
 
     @Override
@@ -23,5 +24,10 @@ public class PhysiqueRatingChart extends AbstractChart {
     @Override
     void setDataSetMode(LineDataSet lineDataSet) {
         lineDataSet.setMode(LineDataSet.Mode.STEPPED);
+    }
+
+    @Override
+    String setPrintStringForXValue(float selectedYValue) {
+        return chartName + ": " + selectedYValue;
     }
 }

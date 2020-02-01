@@ -13,6 +13,7 @@ public class MuscleMassChart extends AbstractChart {
 
     public MuscleMassChart(Context context, View view, List<WeightReportDTO> weightReport) {
         super(context, view, weightReport);
+        chartName = "Muscle mass";
     }
 
     @Override
@@ -23,5 +24,10 @@ public class MuscleMassChart extends AbstractChart {
     @Override
     void setDataSetMode(LineDataSet lineDataSet) {
         lineDataSet.setMode(LineDataSet.Mode.CUBIC_BEZIER);
+    }
+
+    @Override
+    String setPrintStringForXValue(float selectedYValue) {
+        return chartName + ": " + selectedYValue + " kg";
     }
 }
