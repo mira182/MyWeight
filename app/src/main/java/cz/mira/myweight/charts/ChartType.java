@@ -8,72 +8,100 @@ import java.util.List;
 import cz.mira.myweight.rest.dto.WeightReportDTO;
 
 public enum ChartType {
-    WEIGHT {
+    WEIGHT("Weight", "kg") {
         @Override
-        public AbstractChart createChart(Context context, View view, List<WeightReportDTO> weightReport) {
-            return new WeightChart(context, view, weightReport);
+        public AbstractLineChart createChart(Context context, View view, List<WeightReportDTO> weightReport) {
+            return new WeightLineChart(context, view, weightReport);
         }
     },
-    BMI {
+    BMI("BMI") {
         @Override
-        public AbstractChart createChart(Context context, View view, List<WeightReportDTO> weightReport) {
-            return new BmiChart(context, view, weightReport);
+        public AbstractLineChart createChart(Context context, View view, List<WeightReportDTO> weightReport) {
+            return new BmiLineChart(context, view, weightReport);
         }
     },
-    BODY_FAT {
+    BODY_FAT("Body fat", "%") {
         @Override
-        public AbstractChart createChart(Context context, View view, List<WeightReportDTO> weightReport) {
-            return new BodyFatChart(context, view, weightReport);
+        public AbstractLineChart createChart(Context context, View view, List<WeightReportDTO> weightReport) {
+            return new BodyFatLineChart(context, view, weightReport);
         }
     },
-    VISCERAL_FAT {
+    VISCERAL_FAT("Visceral fat") {
         @Override
-        public AbstractChart createChart(Context context, View view, List<WeightReportDTO> weightReport) {
-            return new VisceralFatChart(context, view, weightReport);
+        public AbstractLineChart createChart(Context context, View view, List<WeightReportDTO> weightReport) {
+            return new VisceralFatLineChart(context, view, weightReport);
         }
     },
-    MUSCLE_MASS {
+    MUSCLE_MASS("Muscle mass", "kg") {
         @Override
-        public AbstractChart createChart(Context context, View view, List<WeightReportDTO> weightReport) {
-            return new MuscleMassChart(context, view, weightReport);
+        public AbstractLineChart createChart(Context context, View view, List<WeightReportDTO> weightReport) {
+            return new MuscleMassLineChart(context, view, weightReport);
         }
     },
-    MUSCLE_QUALITY {
+    MUSCLE_QUALITY("Muscle quality") {
         @Override
-        public AbstractChart createChart(Context context, View view, List<WeightReportDTO> weightReport) {
-            return new MuscleQualityChart(context, view, weightReport);
+        public AbstractLineChart createChart(Context context, View view, List<WeightReportDTO> weightReport) {
+            return new MuscleQualityLineChart(context, view, weightReport);
         }
     },
-    BONE_MASS {
+    BONE_MASS("Bone mass", "kg") {
         @Override
-        public AbstractChart createChart(Context context, View view, List<WeightReportDTO> weightReport) {
-            return new BoneMassChart(context, view, weightReport);
+        public AbstractLineChart createChart(Context context, View view, List<WeightReportDTO> weightReport) {
+            return new BoneMassLineChart(context, view, weightReport);
         }
     },
-    BMR {
+    BMR("BMR", "kcal") {
         @Override
-        public AbstractChart createChart(Context context, View view, List<WeightReportDTO> weightReport) {
-            return new BmrChart(context, view, weightReport);
+        public AbstractLineChart createChart(Context context, View view, List<WeightReportDTO> weightReport) {
+            return new BmrLineChart(context, view, weightReport);
         }
     },
-    METABOLIC_AGE {
+    METABOLIC_AGE("Metabolic age", "years") {
         @Override
-        public AbstractChart createChart(Context context, View view, List<WeightReportDTO> weightReport) {
-            return new MetabolicAgeChart(context, view, weightReport);
+        public AbstractLineChart createChart(Context context, View view, List<WeightReportDTO> weightReport) {
+            return new MetabolicAgeLineChart(context, view, weightReport);
         }
     },
-    BODY_WATTER {
+    BODY_WATTER("Body watter", "%") {
         @Override
-        public AbstractChart createChart(Context context, View view, List<WeightReportDTO> weightReport) {
-            return new BodyWatterChart(context, view, weightReport);
+        public AbstractLineChart createChart(Context context, View view, List<WeightReportDTO> weightReport) {
+            return new BodyWatterLineChart(context, view, weightReport);
         }
     },
-    PHYSIQUE_RATING {
+    PHYSIQUE_RATING("Physique rating") {
         @Override
-        public AbstractChart createChart(Context context, View view, List<WeightReportDTO> weightReport) {
-            return new PhysiqueRatingChart(context, view, weightReport);
+        public AbstractLineChart createChart(Context context, View view, List<WeightReportDTO> weightReport) {
+            return new PhysiqueRatingLineChart(context, view, weightReport);
+        }
+    },
+    MULTI_LINE("Multi line") {
+        @Override
+        public AbstractLineChart createChart(Context context, View view, List<WeightReportDTO> weightReport) {
+            return new MultiLineChart(context, view, weightReport);
         }
     };
 
-    public abstract AbstractChart createChart(Context context, View view, List<WeightReportDTO> weightReport);
+    private String chartName;
+
+    private String unit;
+
+    ChartType(String chartName, String unit) {
+        this.chartName = chartName;
+        this.unit = unit;
+    }
+
+    ChartType(String chartName) {
+        this.chartName = chartName;
+        this.unit = "";
+    }
+
+    public String getChartName() {
+        return chartName;
+    }
+
+    public String getUnit() {
+        return unit;
+    }
+
+    public abstract AbstractLineChart createChart(Context context, View view, List<WeightReportDTO> weightReport);
 }

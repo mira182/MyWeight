@@ -13,6 +13,7 @@
     <string name="metabolicAge_tab_text">Metabolic age</string>
     <string name="bodyWatter_tab_text">Body watter</string>
     <string name="physiqueRating_tab_text">Physique rating</string>
+    <string name="all_tab_text">All</string>
     <string name="title_activity_main">MainActivity</string>
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>

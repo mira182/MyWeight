@@ -1,4 +1,4 @@
-package cz.mira.myweight.ui.main;
+package cz.mira.myweight.ui.charts;
 
 import android.content.Context;
 
@@ -32,7 +32,8 @@ public class SectionsPagerAdapter extends FragmentPagerAdapter {
             R.string.bmr_tab_text,
             R.string.metabolicAge_tab_text,
             R.string.bodyWatter_tab_text,
-            R.string.physiqueRating_tab_text
+            R.string.physiqueRating_tab_text,
+            R.string.all_tab_text
     };
 
     private final Context mContext;

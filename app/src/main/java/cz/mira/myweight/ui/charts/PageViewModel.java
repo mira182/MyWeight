@@ -1,4 +1,4 @@
-package cz.mira.myweight.ui.main;
+package cz.mira.myweight.ui.charts;
 
 import androidx.arch.core.util.Function;
 import androidx.lifecycle.LiveData;

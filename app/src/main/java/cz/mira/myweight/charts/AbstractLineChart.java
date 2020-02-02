@@ -1,6 +1,7 @@
 package cz.mira.myweight.charts;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
@@ -15,11 +16,10 @@ import com.github.mikephil.charting.data.LineData;
 import com.github.mikephil.charting.data.LineDataSet;
 import com.github.mikephil.charting.formatter.ValueFormatter;
 import com.github.mikephil.charting.highlight.Highlight;
+import com.github.mikephil.charting.interfaces.datasets.ILineDataSet;
 import com.github.mikephil.charting.listener.OnChartValueSelectedListener;
 
 import java.text.SimpleDateFormat;
-import java.time.ZoneId;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -28,13 +28,13 @@ import java.util.concurrent.TimeUnit;
 import cz.mira.myweight.R;
 import cz.mira.myweight.rest.dto.WeightReportDTO;
 
-public abstract class AbstractChart {
+public abstract class AbstractLineChart {
 
-    private static final String TAG = "AbstractChart";
+    private static final String TAG = "AbstractLineChart";
 
     private static final SimpleDateFormat chartDateFormat = new SimpleDateFormat("dd/MMM", Locale.ENGLISH);
 
-    private static final SimpleDateFormat printDateFormat = new SimpleDateFormat("dd.MMMM yyyy", Locale.ENGLISH);
+    private static final SimpleDateFormat printDateFormat = new SimpleDateFormat("dd MMMM yyyy", Locale.ENGLISH);
 
     private Context context;
 
@@ -46,33 +46,24 @@ public abstract class AbstractChart {
 
     private float selectedYValue;
 
-    String chartName;
+    private LineData lineData;
 
-    public AbstractChart(Context context, View view, List<WeightReportDTO> weightReport) {
+    public AbstractLineChart(Context context, View view, List<WeightReportDTO> weightReport) {
         this.context = context;
         this.view = view;
         this.weightReport = weightReport;
+        createLineChart();
     }
 
-    public final void createLineChart() {
+    private final void createLineChart() {
         final LineChart lineChart = view.findViewById(R.id.lineChart);
-        final ArrayList<Entry> entries = new ArrayList<>();
-        for (int i = 1; i < weightReport.size(); i++) {
-            float x_points = TimeUnit.MILLISECONDS.toHours(weightReport.get(i).getDate().atZone(
-                    ZoneId.systemDefault()).toInstant().toEpochMilli());
-            float y_points = getYAxisDataList(weightReport, i);
-            entries.add(new Entry(x_points, y_points));
-        }
-        LineDataSet lineDataSet = new LineDataSet(entries, "BMI");
-        lineDataSet.setColor(ContextCompat.getColor(context, R.color.colorPrimary));
-        lineDataSet.setDrawValues(false);
-//        lineDataSet.setValueTextColor(ContextCompat.getColor(context, R.color.colorPrimaryDark));
-        setDataSetMode(lineDataSet);
+        final LineDataSet lineDataSet = createLineDataSet(createEntries(weightReport), "",
+                ContextCompat.getColor(context, R.color.colorPrimary));
+        setUpLineDataSet(lineDataSet);
+
         XAxis xAxis = lineChart.getXAxis();
         xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
         xAxis.setValueFormatter(new ValueFormatter() {
-
-
             @Override
             public String getFormattedValue(float value) {
                 long millis = TimeUnit.HOURS.toMillis((long) value);
@@ -85,22 +76,22 @@ public abstract class AbstractChart {
 
         YAxis yAxisLeft = lineChart.getAxisLeft();
         yAxisLeft.setGranularity(1f);
+        setUpLineYAxis(yAxisLeft);
 
-        LineData data = new LineData(lineDataSet);
-        lineChart.setData(data);
-        lineChart.animateX(2500);
+        lineData = new LineData(lineDataSet);
+        lineChart.setData(lineData);
         lineChart.invalidate();
         lineChart.getLegend().setEnabled(false);
-
+        lineChart.getDescription().setEnabled(false);
         lineChart.setOnChartValueSelectedListener(new OnChartValueSelectedListener() {
             @Override
             public void onValueSelected(Entry e, Highlight h) {
                 selectedXValue = e.getX();
                 selectedYValue = e.getY();
-                Log.d(TAG, "x: " + selectedXValue + " y: " + selectedYValue);
                 TextView textView = view.findViewById(R.id.points_text_view);
+                Log.d(TAG, e.getData().toString());
                 textView.setText("Date: " + printDateFormat.format(TimeUnit.HOURS.toMillis((long) selectedXValue)) + "\n" +
-                        setPrintStringForXValue(selectedYValue));
+                        setPrintStringForXValue(selectedYValue, e.getData()));
             }
 
             @Override
@@ -110,9 +101,30 @@ public abstract class AbstractChart {
         });
     }
 
-    abstract float getYAxisDataList(List<WeightReportDTO> weightReport, int index);
+    LineDataSet createLineDataSet(List<Entry> entries, String label, int lineColor) {
+        final LineDataSet lineDataSet = new LineDataSet(entries, label);
+        lineDataSet.setColor(lineColor);
+        lineDataSet.setDrawValues(false);
+        lineDataSet.setCircleColor(Color.BLUE);
+        lineDataSet.setCircleHoleColor(Color.BLUE);
+        lineDataSet.setLineWidth(2f);
+        return lineDataSet;
+    }
 
-    abstract void setDataSetMode(LineDataSet lineDataSet);
+    String setPrintStringForXValue(float selectedYValue, Object data) {
+        final ChartType chartType = (ChartType) data;
+        return chartType.getChartName() + ": " + selectedYValue + " " + chartType.getUnit();
+    }
 
-    abstract String setPrintStringForXValue(float selectedYValue);
+    void addLineSetToLineData(ILineDataSet lineDataSet) {
+        lineData.addDataSet(lineDataSet);
+    }
+
+    abstract List<Entry> createEntries(List<WeightReportDTO> weightReport);
+
+    abstract float getXValue(List<WeightReportDTO> weightReport, int index);
+
+    abstract void setUpLineDataSet(LineDataSet lineDataSet);
+
+    abstract void setUpLineYAxis(YAxis axis);
 }

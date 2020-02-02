@@ -1,4 +1,4 @@
-package cz.mira.myweight.ui.main.fragments;
+package cz.mira.myweight.ui.charts.fragments;
 
 import android.content.Context;
 import android.net.Uri;
@@ -12,7 +12,6 @@ import androidx.fragment.app.Fragment;
 import java.util.ArrayList;
 
 import cz.mira.myweight.R;
-import cz.mira.myweight.charts.AbstractChart;
 import cz.mira.myweight.charts.ChartType;
 import cz.mira.myweight.rest.dto.WeightReportDTO;
 import lombok.NonNull;
@@ -63,8 +62,7 @@ public class ChartFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         final View view = inflater.inflate(R.layout.fragment_weight_chart, container, false);
-        AbstractChart chart = chartType.createChart(getContext(), view, weightReport);
-        chart.createLineChart();
+        chartType.createChart(getContext(), view, weightReport);
         return view;
     }
 

@@ -132,7 +132,6 @@ public class MainActivity extends AppCompatActivity {
         super.onResume();
         if (actionsFabMenu != null) {
             actionsFabMenu.close(true);
-            Log.d(TAG, "on resume");
         }
     }
 
