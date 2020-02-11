@@ -11,9 +11,6 @@ import androidx.viewpager.widget.ViewPager;
 
 import com.google.android.material.tabs.TabLayout;
 import com.google.common.collect.Lists;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonDeserializer;
 
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
@@ -23,40 +20,29 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.security.GeneralSecurityException;
-import java.security.cert.CertificateException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
-
-import javax.net.ssl.HostnameVerifier;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSession;
-import javax.net.ssl.SSLSocketFactory;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
 
 import cz.mira.myweight.charts.ChartType;
 import cz.mira.myweight.database.DatabaseClient;
 import cz.mira.myweight.database.async.AsyncTaskResult;
 import cz.mira.myweight.database.entity.WeightLastUpdate;
 import cz.mira.myweight.database.entity.WeightReport;
-import cz.mira.myweight.rest.WeightRestService;
+import cz.mira.myweight.rest.RestUtils;
 import cz.mira.myweight.rest.dto.WeightReportDTO;
+import cz.mira.myweight.rest.weight.WeightRestService;
 import cz.mira.myweight.services.GmailService;
 import cz.mira.myweight.ui.charts.SectionsPagerAdapter;
 import cz.mira.myweight.ui.charts.fragments.ChartFragment;
-import okhttp3.OkHttpClient;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 import retrofit2.Retrofit;
-import retrofit2.converter.gson.GsonConverterFactory;
 
 public class ChartsActivity extends AppCompatActivity implements ChartFragment.OnFragmentInteractionListener {
 
     private static final String TAG = "ChartsActivity";
-
-    static final String BASE_URL = "http://mira182.synology.me:8000/";
 
     private GmailService gmailService;
 
@@ -70,21 +56,9 @@ public class ChartsActivity extends AppCompatActivity implements ChartFragment.O
         TabLayout tabs = findViewById(R.id.tabs);
         tabs.setupWithViewPager(viewPager);
 
-        final Gson gson = new GsonBuilder().registerTypeAdapter(LocalDateTime.class,
-                (JsonDeserializer<LocalDateTime>) (json, type, jsonDeserializationContext) ->
-                        LocalDateTime.parse(json.getAsJsonPrimitive().getAsString()))
-                .create();
+        final WeightRestService weightRestService = RestUtils.getWeightRestService();
 
-        final Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl(BASE_URL)
-                .client(getUnsafeOkHttpClient().build())
-                .addConverterFactory(GsonConverterFactory.create(gson))
-                .build();
-
-        WeightRestService weightReportService = retrofit.create(WeightRestService.class);
-
-        Call<List<WeightReportDTO>> getWeightReportCall = weightReportService.getWeightReport();
-//            Call<Boolean> doesNewEmailExistCall = weightReportService.doesNewEmailExist();
+        Call<List<WeightReportDTO>> getWeightReportCall = weightRestService.getWeightReport();
         getWeightReportCall.enqueue(new Callback<List<WeightReportDTO>>() {
             @Override
             public void onResponse(Call<List<WeightReportDTO>> call, Response<List<WeightReportDTO>> response) {
@@ -110,22 +84,6 @@ public class ChartsActivity extends AppCompatActivity implements ChartFragment.O
                 Log.e(TAG, "Failed to call : " + call, t);
             }
         });
-//            doesNewEmailExistCall.enqueue(new Callback<Boolean>() {
-//                @Override
-//                public void onResponse(Call<Boolean> call, Response<Boolean> response) {
-//                    if (response.isSuccessful()) {
-//                        final String existsString = response.body() ? "exists" : "does not exist";
-//                        Log.i(TAG, "New email " + existsString);
-//                    } else {
-//                        Log.e(TAG, "Failed to check if new email exists. " + response.errorBody().toString());
-//                    }
-//                }
-//
-//                @Override
-//                public void onFailure(Call<Boolean> call, Throwable t) {
-//                    Log.e(TAG, "Failed to call : " + call, t);
-//                }
-//            });
 
         // old solution
 //        gmailService = new GmailService();
@@ -262,47 +220,7 @@ public class ChartsActivity extends AppCompatActivity implements ChartFragment.O
         task.execute(retrofit);
     }
 
-    public static OkHttpClient.Builder getUnsafeOkHttpClient() {
 
-        try {
-            // Create a trust manager that does not validate certificate chains
-            final TrustManager[] trustAllCerts = new TrustManager[]{
-                    new X509TrustManager() {
-                        @Override
-                        public void checkClientTrusted(java.security.cert.X509Certificate[] chain, String authType) throws CertificateException {
-                        }
-
-                        @Override
-                        public void checkServerTrusted(java.security.cert.X509Certificate[] chain, String authType) throws CertificateException {
-                        }
-
-                        @Override
-                        public java.security.cert.X509Certificate[] getAcceptedIssuers() {
-                            return new java.security.cert.X509Certificate[]{};
-                        }
-                    }
-            };
-
-            // Install the all-trusting trust manager
-            final SSLContext sslContext = SSLContext.getInstance("SSL");
-            sslContext.init(null, trustAllCerts, new java.security.SecureRandom());
-
-            // Create an ssl socket factory with our all-trusting manager
-            final SSLSocketFactory sslSocketFactory = sslContext.getSocketFactory();
-
-            OkHttpClient.Builder builder = new OkHttpClient.Builder();
-            builder.sslSocketFactory(sslSocketFactory, (X509TrustManager) trustAllCerts[0]);
-            builder.hostnameVerifier(new HostnameVerifier() {
-                @Override
-                public boolean verify(String hostname, SSLSession session) {
-                    return true;
-                }
-            });
-            return builder;
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
 
     @Override
     public void onFragmentInteraction(Uri uri) {

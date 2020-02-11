@@ -28,5 +28,4 @@
             android:theme="@style/AppTheme.ChartsStyle">
         </activity>
     </application>
-
 </manifest>

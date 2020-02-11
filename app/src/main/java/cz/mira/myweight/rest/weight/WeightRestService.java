@@ -1,4 +1,4 @@
-package cz.mira.myweight.rest;
+package cz.mira.myweight.rest.weight;
 
 import java.util.List;
 

@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
 import android.view.Menu;
+import android.view.View;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -19,22 +20,15 @@ import androidx.navigation.ui.NavigationUI;
 import com.github.clans.fab.FloatingActionButton;
 import com.github.clans.fab.FloatingActionMenu;
 import com.google.android.material.navigation.NavigationView;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonDeserializer;
 
 import java.io.IOException;
-import java.time.LocalDateTime;
 
-import cz.mira.myweight.rest.WeightRestService;
+import cz.mira.myweight.rest.RestUtils;
+import cz.mira.myweight.rest.weight.WeightRestService;
+import cz.mira.myweight.timer.CheckNewEmailTimer;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
-import retrofit2.Retrofit;
-import retrofit2.converter.gson.GsonConverterFactory;
-
-import static cz.mira.myweight.ChartsActivity.BASE_URL;
-import static cz.mira.myweight.ChartsActivity.getUnsafeOkHttpClient;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -70,23 +64,16 @@ public class MainActivity extends AppCompatActivity {
         ConstraintLayout contentMainLayout = findViewById(R.id.content_main_layout);
         contentMainLayout.setOnClickListener(v -> actionsFabMenu.close(true));
 
-
-        final Gson gson = new GsonBuilder().registerTypeAdapter(LocalDateTime.class,
-                (JsonDeserializer<LocalDateTime>) (json, type, jsonDeserializationContext) ->
-                        LocalDateTime.parse(json.getAsJsonPrimitive().getAsString()))
-                .create();
-
-        final Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl(BASE_URL)
-                .client(getUnsafeOkHttpClient().build())
-                .addConverterFactory(GsonConverterFactory.create(gson))
-                .build();
-
-        WeightRestService weightReportService = retrofit.create(WeightRestService.class);
+        final WeightRestService weightReportService = RestUtils.getWeightRestService();
 
         showChartsFab.setOnClickListener(v -> {
             Intent intent = new Intent(this, ChartsActivity.class);
             startActivity(intent);
+        });
+
+        new CheckNewEmailTimer(doesNewEmailExist -> {
+            if (!doesNewEmailExist) updateWeightReportFab.setVisibility(View.GONE);
+            else if (doesNewEmailExist && actionsFabMenu.isOpened()) updateWeightReportFab.setVisibility(View.VISIBLE);
         });
 
         updateWeightReportFab.setOnClickListener(v -> {
