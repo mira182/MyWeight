@@ -100,7 +100,7 @@ public class ChartsActivity extends AppCompatActivity implements ChartFragment.O
                     try {
                         Log.e(TAG, response.errorBody().string());
                     } catch (IOException e) {
-                        e.printStackTrace();
+                        Log.e(TAG, "Couldn't get response error body");
                     }
                 }
             }
